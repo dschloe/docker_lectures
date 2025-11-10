@@ -1,0 +1,5 @@
+# 베이스 이미지 지정
+FROM ubuntu:22.04
+
+# 하나의 RUN 명령에서 여러 작업을 &&로 연결
+RUN apt update && apt install -y vim && apt clean

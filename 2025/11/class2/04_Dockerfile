@@ -1,0 +1,5 @@
+# 베이스 이미지 지정
+FROM mysql:9.0.1
+
+# 시간대(Time Zone) 및 기본 환경 변수 설정
+ENV TZ=Asia/Seoul
