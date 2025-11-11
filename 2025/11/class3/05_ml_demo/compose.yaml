@@ -1,0 +1,57 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: tips_db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    ports:
+      - "${HOST_DB_PORT}:3306"              # 로컬 3306 점유 시 3307 등 사용
+    volumes:
+      - dbdata:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -p${MYSQL_ROOT_PASSWORD} || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  loader:
+    build: ./loader
+    container_name: tips_loader
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASS: ${MYSQL_ROOT_PASSWORD}
+      DB_NAME: ${MYSQL_DATABASE}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"                             # 1회성
+
+  app:
+    build: ./app
+    container_name: tips_app
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASS: ${MYSQL_ROOT_PASSWORD}
+      DB_NAME: ${MYSQL_DATABASE}
+      PYTHONUNBUFFERED: "1"
+    ports:
+      - "8501:8501"                           # Streamlit
+    depends_on:
+      db:
+        condition: service_healthy
+      loader:
+        condition: service_completed_successfully
+
+    # 개발용 코드 동기화(바인드 마운트) 프로파일
+    profiles: ["dev"]
+    volumes:
+      - ./app:/app                            # 코드를 컨테이너와 실시간 동기화
+
+volumes:
+  dbdata:

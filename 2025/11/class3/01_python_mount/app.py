@@ -1,0 +1,1 @@
+print('Hello from Bind Mount with full options!')

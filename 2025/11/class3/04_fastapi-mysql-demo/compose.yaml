@@ -1,0 +1,41 @@
+name: fastapi-mysql-demo
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: db1
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    ports:
+      - "${HOST_DB_PORT}:3306"        # 호스트 3307 → 컨테이너 3306
+    volumes:
+      - dbdata:/var/lib/mysql         # 영속 데이터
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro  # 최초 기동 시 실행
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -p${MYSQL_ROOT_PASSWORD} || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  app:
+    build: ./app
+    container_name: app1
+    environment:
+      DB_HOST: db1
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASS: ${MYSQL_ROOT_PASSWORD}
+      DB_NAME: ${MYSQL_DATABASE}
+      PYTHONUNBUFFERED: "1"
+    ports:
+      - "8000:8000"                   # FastAPI → http://localhost:8000
+    depends_on:
+      db:
+        condition: service_healthy
+    # 개발 시 코드 실시간 반영 원하면 아래 주석 해제
+    # volumes:
+    #   - ./app:/app
+
+volumes:
+  dbdata:
