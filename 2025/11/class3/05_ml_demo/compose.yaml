@@ -1,6 +1,6 @@
 services:
   db:
-    image: mysql:8.0
+    image: mirror.gcr.io/library/mysql:8.0
     container_name: tips_db
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}

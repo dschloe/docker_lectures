@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM mirror.gcr.io/library/python:3.11-slim
 
 WORKDIR /loader
 RUN pip install --no-cache-dir pandas seaborn pymysql cryptography sqlalchemy
